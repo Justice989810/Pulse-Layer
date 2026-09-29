@@ -186,6 +186,7 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <span
                   role="status"
                   aria-live="polite"
+                  aria-atomic="true"
                   className="text-[10px] text-[var(--accent-emerald)] font-bold"
                 >
                   Copied!
@@ -195,6 +196,7 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <span
                   role="alert"
                   aria-live="assertive"
+                  aria-atomic="true"
                   className="text-[10px] text-[var(--accent-rose)] font-bold"
                 >
                   {copyErrorMsg}
