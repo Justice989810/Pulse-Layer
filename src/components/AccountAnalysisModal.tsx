@@ -28,12 +28,30 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
   const [copyState, setCopyState] = useState<CopyState>('idle');
   const [copyErrorMsg, setCopyErrorMsg] = useState<string>('');
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    dialog.showModal();
+    closeButtonRef.current?.focus();
+
+    return () => {
+      if (dialog.open) dialog.close();
+      previouslyFocused?.focus();
     };
   }, []);
 
@@ -122,20 +140,29 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
     window.open(`${getApiUrl()}/api/export/${accountData.account}`, '_blank');
   };
 
-  const breakdown = accountData.breakdown || {
-    consistency: 75,
-    lifespan: 80,
-    interaction_quality: 70,
-    risk_exposure: 85,
-  };
+  const breakdown = accountData.breakdown;
 
   const signals = accountData.signals || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="account-analysis-title"
+      aria-modal="true"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 m-0 flex h-full max-h-none w-full max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4 backdrop:bg-black/80 backdrop:backdrop-blur-md"
+    >
       <div className="metallic-card-glow w-full max-w-4xl rounded-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto font-mono-tech">
         {/* Close Button */}
         <button
+          ref={closeButtonRef}
+          type="button"
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-subtle)] hover:border-[var(--accent-electric)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
         >
@@ -148,7 +175,7 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
             <span className="text-[11px] uppercase tracking-widest text-[var(--accent-electric)] font-bold">
               DEEP INSPECTION AUDIT
             </span>
-            <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2 mt-1">
+            <h2 id="account-analysis-title" className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2 mt-1">
               Account Pulse Signal
             </h2>
             <div className="flex items-center gap-2 mt-1">
@@ -292,12 +319,14 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[var(--text-secondary)]">Consistency Factor</span>
-                    <span className="text-[var(--text-primary)] font-bold">{breakdown.consistency}%</span>
+                    <span className="text-[var(--text-primary)] font-bold">
+                      {breakdown?.consistency == null ? 'Unavailable' : `${breakdown.consistency}%`}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] overflow-hidden">
                     <div
                       className="h-full bg-[var(--accent-electric)] transition-all"
-                      style={{ width: `${breakdown.consistency}%` }}
+                      style={{ width: `${breakdown?.consistency ?? 0}%` }}
                     />
                   </div>
                 </div>
@@ -306,12 +335,14 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[var(--text-secondary)]">Lifespan Maturity</span>
-                    <span className="text-[var(--text-primary)] font-bold">{breakdown.lifespan}%</span>
+                    <span className="text-[var(--text-primary)] font-bold">
+                      {breakdown?.lifespan == null ? 'Unavailable' : `${breakdown.lifespan}%`}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] overflow-hidden">
                     <div
                       className="h-full bg-[var(--accent-emerald)] transition-all"
-                      style={{ width: `${breakdown.lifespan}%` }}
+                      style={{ width: `${breakdown?.lifespan ?? 0}%` }}
                     />
                   </div>
                 </div>
@@ -320,12 +351,16 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[var(--text-secondary)]">Interaction Quality</span>
-                    <span className="text-[var(--text-primary)] font-bold">{breakdown.interaction_quality}%</span>
+                    <span className="text-[var(--text-primary)] font-bold">
+                      {breakdown?.interaction_quality == null
+                        ? 'Unavailable'
+                        : `${breakdown.interaction_quality}%`}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] overflow-hidden">
                     <div
                       className="h-full bg-[var(--accent-blue)] transition-all"
-                      style={{ width: `${breakdown.interaction_quality}%` }}
+                      style={{ width: `${breakdown?.interaction_quality ?? 0}%` }}
                     />
                   </div>
                 </div>
@@ -334,12 +369,16 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[var(--text-secondary)]">Safety Rating</span>
-                    <span className="text-[var(--text-primary)] font-bold">{breakdown.risk_exposure}%</span>
+                    <span className="text-[var(--text-primary)] font-bold">
+                      {breakdown?.risk_exposure == null
+                        ? 'Unavailable'
+                        : `${breakdown.risk_exposure}%`}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] overflow-hidden">
                     <div
                       className="h-full bg-[var(--accent-amber)] transition-all"
-                      style={{ width: `${breakdown.risk_exposure}%` }}
+                      style={{ width: `${breakdown?.risk_exposure ?? 0}%` }}
                     />
                   </div>
                 </div>
@@ -393,6 +432,6 @@ export const AccountAnalysisModal: React.FC<AccountAnalysisModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

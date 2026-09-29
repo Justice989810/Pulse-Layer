@@ -5,12 +5,13 @@ import { TrendingUp, TrendingDown, Minus, ShieldCheck, AlertTriangle } from 'luc
 import { useTheme } from '@/context/ThemeContext';
 
 interface PulseGaugeProps {
-  score: number;
-  trend: 'up' | 'down' | 'stable';
-  confidence: number;
+  score: number | null;
+  trend: 'up' | 'down' | 'stable' | null;
+  confidence: number | null;
   anomalyFlag: boolean;
-  riskLevel: string;
+  riskLevel: string | null;
   account: string;
+  loading: boolean;
 }
 
 export const PulseGauge: React.FC<PulseGaugeProps> = ({
@@ -20,6 +21,7 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
   anomalyFlag,
   riskLevel,
   account,
+  loading,
 }) => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
@@ -29,23 +31,25 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
   const circumference = 2 * Math.PI * radius;
   // Use 270 degree arc (3/4 of circle)
   const strokeDasharray = `${circumference * 0.75} ${circumference * 0.25}`;
-  const strokeDashoffset = circumference * 0.75 * (1 - Math.min(100, Math.max(0, score)) / 100);
+  const strokeDashoffset = circumference * 0.75 * (1 - Math.min(100, Math.max(0, score ?? 0)) / 100);
 
   // Dynamic Theme Colors
   let colorHex = isLight ? '#0284C7' : '#00F0FF';
   let glowClass = 'pulse-glow-cyan';
-  if (score >= 80) {
-    colorHex = isLight ? '#0284C7' : '#00F0FF';
-    glowClass = 'pulse-glow-cyan';
-  } else if (score >= 55) {
-    colorHex = isLight ? '#2563EB' : '#0066FF';
-    glowClass = 'pulse-glow-blue';
-  } else if (score >= 35) {
-    colorHex = isLight ? '#D97706' : '#F59E0B';
-    glowClass = 'pulse-glow-amber';
-  } else {
-    colorHex = isLight ? '#E11D48' : '#F43F5E';
-    glowClass = 'pulse-glow-rose';
+  if (score !== null) {
+    if (score >= 80) {
+      colorHex = isLight ? '#0284C7' : '#00F0FF';
+      glowClass = 'pulse-glow-cyan';
+    } else if (score >= 55) {
+      colorHex = isLight ? '#2563EB' : '#0066FF';
+      glowClass = 'pulse-glow-blue';
+    } else if (score >= 35) {
+      colorHex = isLight ? '#D97706' : '#F59E0B';
+      glowClass = 'pulse-glow-amber';
+    } else {
+      colorHex = isLight ? '#E11D48' : '#F43F5E';
+      glowClass = 'pulse-glow-rose';
+    }
   }
 
   return (
@@ -67,7 +71,11 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
           </p>
         </div>
 
-        {anomalyFlag ? (
+        {score === null ? (
+          <span className="text-[11px] font-mono-tech px-2.5 py-1 rounded bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-bold">
+            {loading ? 'LOADING ACCOUNT DATA' : 'ACCOUNT DATA UNAVAILABLE'}
+          </span>
+        ) : anomalyFlag ? (
           <span className="flex items-center gap-1 text-[11px] font-mono-tech px-2.5 py-1 rounded bg-[var(--accent-rose)]/15 text-[var(--accent-rose)] border border-[var(--accent-rose)]/40 font-bold animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5" />
             ANOMALY DETECTED
@@ -95,18 +103,20 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
             strokeLinecap="round"
           />
           {/* Animated Value Progress Circle */}
-          <circle
-            cx="110"
-            cy="110"
-            r={radius}
-            stroke={colorHex}
-            strokeWidth="16"
-            fill="transparent"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            className={`transition-all duration-1000 ease-out ${glowClass}`}
-          />
+          {score !== null && (
+            <circle
+              cx="110"
+              cy="110"
+              r={radius}
+              stroke={colorHex}
+              strokeWidth="16"
+              fill="transparent"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className={`transition-all duration-1000 ease-out ${glowClass}`}
+            />
+          )}
         </svg>
 
         {/* Center Text Readout */}
@@ -116,9 +126,9 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
               className="text-6xl font-extrabold font-mono-tech tracking-tight"
               style={{ color: colorHex }}
             >
-              {score}
+              {score ?? (loading ? '...' : 'N/A')}
             </span>
-            <span className="text-sm font-mono-tech text-[var(--text-secondary)]">/100</span>
+            {score !== null && <span className="text-sm font-mono-tech text-[var(--text-secondary)]">/100</span>}
           </div>
 
           <div className="mt-1 flex items-center gap-1.5">
@@ -126,12 +136,12 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
               className="text-xs font-mono-tech font-bold uppercase tracking-wider px-2 py-0.5 rounded"
               style={{ backgroundColor: `${colorHex}20`, color: colorHex }}
             >
-              {riskLevel} RISK
+              {riskLevel ? `${riskLevel} RISK` : 'RISK UNAVAILABLE'}
             </span>
           </div>
 
           <p className="text-[11px] font-mono-tech text-[var(--text-secondary)] mt-2">
-            Confidence: {(confidence * 100).toFixed(0)}%
+            Confidence: {confidence === null ? 'Unavailable' : `${(confidence * 100).toFixed(0)}%`}
           </p>
         </div>
       </div>
@@ -155,6 +165,7 @@ export const PulseGauge: React.FC<PulseGaugeProps> = ({
               <Minus className="w-4 h-4" /> STABLE
             </span>
           )}
+          {trend === null && <span className="text-[var(--text-muted)]">UNAVAILABLE</span>}
         </div>
 
         <div className="text-right">

@@ -76,8 +76,13 @@ export const ScoreTrendChart: React.FC<ScoreTrendChartProps> = ({
       </div>
 
       {/* Recharts Curve */}
-      <div className="w-full h-64">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full h-64 flex items-center justify-center">
+        {filteredData.length === 0 ? (
+          <p className="text-sm font-mono-tech text-[var(--text-secondary)]">
+            No score history available for this account.
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={filteredData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
@@ -132,7 +137,8 @@ export const ScoreTrendChart: React.FC<ScoreTrendChartProps> = ({
               fill="url(#scoreGradient)"
             />
           </AreaChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Footer Info */}

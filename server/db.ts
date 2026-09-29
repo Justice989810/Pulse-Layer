@@ -10,6 +10,7 @@ if (!fs.existsSync(dataDir)) {
 }
 
 export const db = new Database(dbPath);
+db.pragma('foreign_keys = ON');
 
 // Initialize schema
 db.exec(`

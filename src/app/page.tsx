@@ -13,12 +13,59 @@ import {
 } from 'lucide-react';
 
 import { getApiUrl } from '@/lib/config';
+import { fetchApiJson, isRecord } from '@/lib/api';
 
 const DEMO_ACCOUNT_DEFAULT = 'GAK6E46MRRAG72MNDHNE54F2M43MVTK4Z2X7MHBCEEE4ZJ32FGGXX444';
+
+type StatsResponse = {
+  total_accounts: number;
+  avg_trust_score: number;
+  last_ledger: string;
+  network_tps: string;
+  anomalies_count: number;
+};
+
+type ScoreResponse = Record<string, unknown> & {
+  account: string;
+  score: number;
+  trend: string;
+  confidence: number;
+  risk_level: string;
+};
+
+type HistoryResponse = {
+  snapshots: { score: number; timestamp: string }[];
+};
+
+const isStatsResponse = (value: unknown): value is StatsResponse =>
+  isRecord(value) &&
+  typeof value.total_accounts === 'number' &&
+  typeof value.avg_trust_score === 'number' &&
+  typeof value.last_ledger === 'string' &&
+  typeof value.network_tps === 'string' &&
+  typeof value.anomalies_count === 'number';
+
+const isScoreResponse = (value: unknown): value is ScoreResponse =>
+  isRecord(value) &&
+  typeof value.account === 'string' &&
+  typeof value.score === 'number' &&
+  typeof value.trend === 'string' &&
+  typeof value.confidence === 'number' &&
+  typeof value.risk_level === 'string';
+
+const isHistoryResponse = (value: unknown): value is HistoryResponse =>
+  isRecord(value) &&
+  Array.isArray(value.snapshots) &&
+  value.snapshots.every((snapshot) =>
+    isRecord(snapshot) &&
+    typeof snapshot.score === 'number' &&
+    typeof snapshot.timestamp === 'string',
+  );
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [accountsPage, setAccountsPage] = useState(1);
   const [selectedAccount, setSelectedAccount] = useState(DEMO_ACCOUNT_DEFAULT);
   const [scoreData, setScoreData] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
@@ -28,8 +75,7 @@ export default function Home() {
 
   // Fetch System Stats
   const fetchStats = () => {
-    fetch(`${getApiUrl()}/api/stats`)
-      .then((res) => res.json())
+    fetchApiJson(`${getApiUrl()}/api/stats`, isStatsResponse)
       .then((data) => setStats(data))
       .catch((err) => console.error('Stats fetch error:', err));
   };
@@ -40,6 +86,8 @@ export default function Home() {
     const controller = new AbortController();
     accountRequestController.current = controller;
     setLoading(true);
+    setScoreData(null);
+    setHistoryData([]);
     setSelectedAccount(acc);
 
     const apiUrl = getApiUrl();
@@ -71,8 +119,7 @@ export default function Home() {
   }, []);
 
   const handleInspectAccount = (acc: string) => {
-    fetch(`${getApiUrl()}/api/score/${acc}`)
-      .then((res) => res.json())
+    fetchApiJson(`${getApiUrl()}/api/score/${acc}`, isScoreResponse)
       .then((data) => setModalAccountData(data))
       .catch((err) => console.error(err));
   };
@@ -83,7 +130,10 @@ export default function Home() {
       <Header
         stats={stats}
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={(query) => {
+          setSearchQuery(query);
+          setAccountsPage(1);
+        }}
         onSearchSubmit={fetchAccountData}
         onRefresh={() => {
           fetchStats();
@@ -125,12 +175,13 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Pulse Score Display */}
           <PulseGauge
-            score={scoreData?.score || 50}
-            trend={scoreData?.trend || 'stable'}
-            confidence={scoreData?.confidence || 0.85}
+            score={scoreData?.score ?? null}
+            trend={scoreData?.trend ?? null}
+            confidence={scoreData?.confidence ?? null}
             anomalyFlag={Boolean(scoreData?.anomaly_flag)}
-            riskLevel={scoreData?.risk_level || 'MODERATE'}
+            riskLevel={scoreData?.risk_level ?? null}
             account={selectedAccount}
+            loading={loading}
           />
 
           {/* Right: Score Trend Curve */}
@@ -212,6 +263,8 @@ export default function Home() {
         <TopAccountsTable
           onSelectAccount={fetchAccountData}
           searchQuery={searchQuery}
+          page={accountsPage}
+          onPageChange={setAccountsPage}
         />
       </main>
 
