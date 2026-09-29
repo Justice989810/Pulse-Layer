@@ -128,7 +128,7 @@ PulseLayer is configured for instant cloud deployment. Read the comprehensive **
 | `GET` | `/api/stats` | Global network indexer stats, ledger height, and average trust score |
 | `GET` | `/api/score/:account` | Detailed Pulse Score, factors, and active signals for Stellar address |
 | `GET` | `/api/history/:account` | Historical score snapshot timeline for charts |
-| `GET` | `/api/top` | Paginated directory of indexed Stellar accounts with risk filtering |
+| `GET` | `/api/top` | Paginated directory; `page` defaults to `1` (range `1-10000`) and `limit` to `50` (range `1-100`); invalid values return `400` |
 | `GET` | `/api/feed` | Recent indexed Stellar operations feed |
 | `GET` | `/api/export/:account` | Download full structured JSON audit payload for an account |
 
