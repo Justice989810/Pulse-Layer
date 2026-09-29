@@ -24,7 +24,7 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [riskFilter, setRiskFilter] = useState('ALL');
-  const [sort] = useState('score_desc');
+  const [sort, setSort] = useState('score_desc');
   const [loading, setLoading] = useState(false);
 
   const fetchAccounts = () => {
@@ -93,6 +93,23 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
               {tab.label}
             </button>
           ))}
+          <label className="flex items-center gap-2 border-l border-[var(--border-subtle)] pl-3 text-xs text-[var(--text-secondary)]">
+            Sort
+            <select
+              aria-label="Sort accounts"
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setPage(1);
+              }}
+              className="rounded bg-[var(--bg-secondary)] px-2 py-1 text-[var(--text-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-electric)]"
+            >
+              <option value="score_desc">Highest score</option>
+              <option value="score_asc">Lowest score</option>
+              <option value="tx_desc">Most transactions</option>
+              <option value="lifespan_desc">Longest lifespan</option>
+            </select>
+          </label>
         </div>
       </div>
 
