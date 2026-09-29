@@ -132,6 +132,8 @@ PulseLayer is configured for instant cloud deployment. Read the comprehensive **
 | `GET` | `/api/feed` | Recent indexed Stellar operations feed |
 | `GET` | `/api/export/:account` | Download full structured JSON audit payload for an account |
 
+The export endpoint accepts valid Stellar ed25519 public keys, returns HTTP 400 for malformed addresses, and returns HTTP 404 when a valid account is not indexed. Its download filename is derived from the validated account address.
+
 ### WebSocket API
 * **Endpoint**: `/ws`
 * **Event Payload**:

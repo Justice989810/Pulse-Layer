@@ -1,4 +1,5 @@
 import { calculateTrustScore, AccountRawData } from '../server/scoring';
+import { StrKey } from '@stellar/stellar-sdk';
 
 async function runTests() {
   console.log('🧪 Starting PulseLayer Integration & Scoring Unit Tests...\n');
@@ -77,9 +78,24 @@ async function runTests() {
     const historyRes = await fetch(`http://localhost:5001/api/history/${sampleAccount.account_id}`).then((r) => r.json());
     console.log('✅ /api/history:', { snapshotsCount: historyRes.snapshots?.length });
 
+    const invalidExportResponse = await fetch('http://localhost:5001/api/export/not-a-stellar-address');
+    const invalidExportBody = await invalidExportResponse.json();
+    if (invalidExportResponse.status !== 400 || invalidExportBody.error !== 'Invalid Stellar account address') {
+      throw new Error('Expected malformed export addresses to return HTTP 400');
+    }
+
+    const unindexedAddress = StrKey.encodeEd25519PublicKey(Buffer.alloc(32));
+    const missingExportResponse = await fetch(`http://localhost:5001/api/export/${unindexedAddress}`);
+    const missingExportBody = await missingExportResponse.json();
+    if (missingExportResponse.status !== 404 || missingExportBody.error !== 'Account not found') {
+      throw new Error('Expected valid unindexed export addresses to return HTTP 404');
+    }
+    console.log('✅ Export route distinguishes invalid addresses (400) from unindexed accounts (404).');
+
     console.log('\n🎉 ALL INTEGRATION TESTS PASSED CLEANLY!');
   } catch (err: any) {
     console.error('❌ API Integration Test Failed:', err.message);
+    process.exitCode = 1;
   }
 }
 

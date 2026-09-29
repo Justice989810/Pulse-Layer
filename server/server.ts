@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { StrKey } from '@stellar/stellar-sdk';
 import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { db } from './db';
@@ -252,6 +253,10 @@ app.get('/api/feed', (req, res) => {
 app.get('/api/export/:account', (req, res) => {
   try {
     const { account } = req.params;
+    if (!StrKey.isValidEd25519PublicKey(account)) {
+      return res.status(400).json({ error: 'Invalid Stellar account address' });
+    }
+
     const accountRow = db.prepare('SELECT * FROM accounts WHERE account_id = ?').get(account) as any;
     const snapshots = db.prepare('SELECT score, timestamp FROM score_snapshots WHERE account_id = ? ORDER BY timestamp ASC').all(account);
     const txs = db.prepare('SELECT * FROM transactions WHERE account_id = ? ORDER BY created_at DESC LIMIT 20').all(account);
