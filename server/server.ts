@@ -5,6 +5,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { db } from './db';
 import { seedAccountsDatabase, startHorizonLiveStream, indexerEvents, DEMO_WELL_KNOWN_ACCOUNTS, getOrFetchStellarAccount } from './indexer';
 import { calculateTrustScore, AccountRawData } from './scoring';
+import { validateRiskFilter } from './query-validation';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5001;
@@ -149,7 +150,7 @@ app.get('/api/history/:account', (req, res) => {
 /**
  * GET /api/top -> Leaderboard of indexed accounts with filtering & search
  */
-app.get('/api/top', (req, res) => {
+app.get('/api/top', validateRiskFilter, (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const page = parseInt(req.query.page as string) || 1;
