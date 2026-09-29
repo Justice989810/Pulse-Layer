@@ -92,8 +92,8 @@ export default function Home() {
 
     const apiUrl = getApiUrl();
     Promise.all([
-      fetchApiJson(`${apiUrl}/api/score/${acc}`, isScoreResponse),
-      fetchApiJson(`${apiUrl}/api/history/${acc}`, isHistoryResponse),
+      fetch(`${apiUrl}/api/score/${acc}`, { signal: controller.signal }).then((r) => r.json()),
+      fetch(`${apiUrl}/api/history/${acc}`, { signal: controller.signal }).then((r) => r.json()),
     ])
       .then(([scoreRes, historyRes]) => {
         if (controller.signal.aborted) return;
