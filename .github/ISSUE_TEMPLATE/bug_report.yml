@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a reproducible problem with PulseLayer
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please describe a reproducible problem and include enough detail to investigate it.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: List the steps or inputs needed to reproduce the problem.
+      placeholder: |-
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected area
+      description: Which page, API, or workflow is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification details
+      description: How can someone confirm the problem and verify a fix?
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include relevant browser, OS, or Node.js version.
