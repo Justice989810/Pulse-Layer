@@ -132,6 +132,8 @@ PulseLayer is configured for instant cloud deployment. Read the comprehensive **
 | `GET` | `/api/feed` | Recent indexed Stellar operations feed |
 | `GET` | `/api/export/:account` | Download full structured JSON audit payload for an account |
 
+JSON request bodies are limited to 100 KB; larger requests are rejected with HTTP 413.
+
 ### WebSocket API
 * **Endpoint**: `/ws`
 * **Event Payload**:
