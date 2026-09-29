@@ -54,11 +54,15 @@ By participating in this project, you agree to uphold a respectful, collaborativ
 
 ## Submitting Pull Requests
 
-1. Ensure your code passes build verification:
-   ```bash
-   npm run build
-   ```
-2. Push your feature branch to your fork:
+Run the same checks used by continuous integration before opening a pull request:
+
+```bash
+npm run lint && npm run build
+```
+
+Then:
+
+1. Push your feature branch to your fork:
    ```bash
    git push origin feature/horizon-stream-enhancement
    ```
