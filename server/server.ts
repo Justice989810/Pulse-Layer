@@ -5,6 +5,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { db } from './db';
 import { seedAccountsDatabase, startHorizonLiveStream, indexerEvents, DEMO_WELL_KNOWN_ACCOUNTS, getOrFetchStellarAccount } from './indexer';
 import { calculateTrustScore, AccountRawData } from './scoring';
+import { jsonBodyErrorHandler, jsonBodyParser } from './http';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5001;
@@ -12,7 +13,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json());
+app.use(jsonBodyParser);
 
 // Initialize HTTP server & WebSockets
 const server = http.createServer(app);
@@ -298,6 +299,8 @@ app.get('/api/export/:account', (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.use(jsonBodyErrorHandler);
 
 // Initialize database & start server
 async function main() {

@@ -123,6 +123,8 @@ PulseLayer is configured for instant cloud deployment. Read the comprehensive **
 
 ### REST Endpoints
 
+JSON request bodies are limited to 100 KB; oversized payloads receive HTTP 413. Verify this behavior with `npm run test:body-parser`.
+
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/stats` | Global network indexer stats, ledger height, and average trust score |
