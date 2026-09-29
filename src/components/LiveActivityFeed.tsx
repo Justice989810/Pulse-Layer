@@ -119,7 +119,7 @@ export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
                     </span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)] truncate">
-                    Hash: {item.hash || '0x49f2...81a'}
+                    Hash: {item.hash || 'Unavailable'}
                   </p>
                 </div>
               </div>
@@ -128,7 +128,9 @@ export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
               <div className="flex items-center justify-between sm:justify-end gap-3 text-right">
                 <div>
                   <span className="text-xs font-bold text-[var(--text-primary)] block">
-                    +{item.amount || '100.00'} {item.asset || 'XLM'}
+                    {item.amount == null || item.amount === ''
+                      ? 'Amount unavailable'
+                      : `${item.amount} ${item.asset || 'Asset unavailable'}`}
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)]">{dateStr}</span>
                 </div>
