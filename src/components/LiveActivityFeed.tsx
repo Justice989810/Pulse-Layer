@@ -115,7 +115,7 @@ export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
               type="button"
               key={item.id || idx}
               onClick={() => onSelectAccount(item.account_id)}
-              className={`w-full text-left p-3 rounded-lg border transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-electric)] ${
+              className={`w-full p-3 text-left rounded-lg border transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-electric)] ${
                 isAnomaly
                   ? 'bg-[var(--accent-amber)]/10 border-[var(--accent-amber)]/40 hover:border-[var(--accent-amber)] shadow-md shadow-[#F59E0B]/5'
                   : 'bg-[var(--bg-secondary)] border-[var(--border-subtle)] hover:border-[var(--accent-electric)]'
