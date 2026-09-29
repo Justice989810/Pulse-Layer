@@ -6,6 +6,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { db } from './db';
 import { seedAccountsDatabase, startHorizonLiveStream, indexerEvents, DEMO_WELL_KNOWN_ACCOUNTS, getOrFetchStellarAccount } from './indexer';
 import { calculateTrustScore, AccountRawData } from './scoring';
+import { getAccountSortOrder, validateAccountSort } from './account-sort';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5001;
@@ -150,14 +151,14 @@ app.get('/api/history/:account', (req, res) => {
 /**
  * GET /api/top -> Leaderboard of indexed accounts with filtering & search
  */
-app.get('/api/top', (req, res) => {
+app.get('/api/top', validateAccountSort, (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const page = parseInt(req.query.page as string) || 1;
     const offset = (page - 1) * limit;
     const risk = req.query.risk as string;
     const search = req.query.search as string;
-    const sort = (req.query.sort as string) || 'score_desc';
+    const sort = req.query.sort;
 
     let query = 'SELECT * FROM accounts WHERE 1=1';
     const params: any[] = [];
@@ -172,10 +173,7 @@ app.get('/api/top', (req, res) => {
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    if (sort === 'score_desc') query += ' ORDER BY score DESC';
-    else if (sort === 'score_asc') query += ' ORDER BY score ASC';
-    else if (sort === 'tx_desc') query += ' ORDER BY tx_count DESC';
-    else if (sort === 'lifespan_desc') query += ' ORDER BY lifespan_days DESC';
+    query += ` ORDER BY ${getAccountSortOrder(sort)}`;
 
     query += ' LIMIT ? OFFSET ?';
     params.push(limit, offset);
