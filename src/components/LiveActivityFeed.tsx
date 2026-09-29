@@ -8,6 +8,25 @@ interface LiveActivityFeedProps {
   onSelectAccount: (account: string) => void;
 }
 
+const mergeFeed = (current: any[], incoming: any[]) => {
+  const seen = new Set();
+  return [...current, ...incoming]
+    .filter((item) => {
+      const identity = item.id ?? item.hash;
+      if (!identity) return true;
+      if (seen.has(identity)) return false;
+      seen.add(identity);
+      return true;
+    })
+    .sort((left, right) => {
+      const leftTime = Date.parse(left.created_at ?? '');
+      const rightTime = Date.parse(right.created_at ?? '');
+      if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) return 0;
+      return rightTime - leftTime;
+    })
+    .slice(0, 30);
+};
+
 export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
   onSelectAccount,
 }) => {
@@ -22,7 +41,7 @@ export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
       .then((res) => res.json())
       .then((data) => {
         if (data.transactions) {
-          setFeed(data.transactions);
+          setFeed((current) => mergeFeed(current, data.transactions));
         }
       })
       .catch((err) => console.error('Feed fetch error:', err));
@@ -39,7 +58,7 @@ export const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({
       try {
         const payload = JSON.parse(event.data);
         if (payload.type === 'LIVE_TRANSACTION') {
-          setFeed((prev) => [payload.data, ...prev.slice(0, 24)]);
+          setFeed((current) => mergeFeed(current, [payload.data]));
         }
       } catch (e) {
         console.error('WS parse error:', e);

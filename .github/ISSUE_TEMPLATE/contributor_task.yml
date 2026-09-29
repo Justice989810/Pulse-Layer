@@ -1,0 +1,26 @@
+name: Feature or contributor task
+description: Propose a feature or a scoped contribution
+title: "[Task]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should change, and who benefits?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and context
+      description: Describe the relevant behavior, constraints, and any related issues.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Verification
+      description: List the expected behavior and how it can be verified.
+    validations:
+      required: true

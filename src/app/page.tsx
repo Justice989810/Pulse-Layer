@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { PulseGauge } from '@/components/PulseGauge';
 import { ScoreTrendChart } from '@/components/ScoreTrendChart';
@@ -24,6 +24,7 @@ export default function Home() {
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [modalAccountData, setModalAccountData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const accountRequestController = useRef<AbortController | null>(null);
 
   // Fetch System Stats
   const fetchStats = () => {
@@ -35,20 +36,25 @@ export default function Home() {
 
   // Fetch Account Score Data
   const fetchAccountData = (acc: string) => {
+    accountRequestController.current?.abort();
+    const controller = new AbortController();
+    accountRequestController.current = controller;
     setLoading(true);
     setSelectedAccount(acc);
 
     const apiUrl = getApiUrl();
     Promise.all([
-      fetch(`${apiUrl}/api/score/${acc}`).then((r) => r.json()),
-      fetch(`${apiUrl}/api/history/${acc}`).then((r) => r.json()),
+      fetch(`${apiUrl}/api/score/${acc}`, { signal: controller.signal }).then((r) => r.json()),
+      fetch(`${apiUrl}/api/history/${acc}`, { signal: controller.signal }).then((r) => r.json()),
     ])
       .then(([scoreRes, historyRes]) => {
+        if (controller.signal.aborted) return;
         setScoreData(scoreRes);
         if (historyRes.snapshots) setHistoryData(historyRes.snapshots);
         setLoading(false);
       })
       .catch((err) => {
+        if (controller.signal.aborted) return;
         console.error('Failed to load account score data:', err);
         setLoading(false);
       });
@@ -58,7 +64,10 @@ export default function Home() {
     fetchStats();
     fetchAccountData(selectedAccount);
     const interval = setInterval(fetchStats, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      accountRequestController.current?.abort();
+    };
   }, []);
 
   const handleInspectAccount = (acc: string) => {

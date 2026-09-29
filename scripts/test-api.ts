@@ -1,4 +1,5 @@
 import { calculateTrustScore, AccountRawData } from '../server/scoring';
+import { Keypair } from '@stellar/stellar-sdk';
 
 async function runTests() {
   console.log('🧪 Starting PulseLayer Integration & Scoring Unit Tests...\n');
@@ -65,8 +66,21 @@ async function runTests() {
   // Test 3: API Endpoint Integration Check
   console.log('Test 3: Validating REST API endpoints against localhost:5001...');
   try {
-    const statsRes = await fetch('http://localhost:5001/api/stats').then((r) => r.json());
+    const statsHttpRes = await fetch('http://localhost:5001/api/stats');
+    const expectedHeaders = {
+      'x-content-type-options': 'nosniff',
+      'x-frame-options': 'DENY',
+      'referrer-policy': 'no-referrer',
+      'x-xss-protection': '0',
+    };
+    for (const [header, value] of Object.entries(expectedHeaders)) {
+      if (statsHttpRes.headers.get(header) !== value) {
+        throw new Error(`Expected ${header}: ${value}`);
+      }
+    }
+    const statsRes = await statsHttpRes.json();
     console.log('✅ /api/stats:', statsRes);
+    console.log('✅ API security headers are present.');
 
     const topRes = await fetch('http://localhost:5001/api/top?limit=3').then((r) => r.json());
     console.log('✅ /api/top:', { total: topRes.total, returned: topRes.accounts.length });
@@ -77,9 +91,34 @@ async function runTests() {
     const historyRes = await fetch(`http://localhost:5001/api/history/${sampleAccount.account_id}`).then((r) => r.json());
     console.log('✅ /api/history:', { snapshotsCount: historyRes.snapshots?.length });
 
+    const validAccount = topRes.accounts[0]?.account;
+    if (!validAccount) throw new Error('Expected /api/top to return an indexed account for the export test.');
+    const exportRes = await fetch(`http://localhost:5001/api/export/${validAccount}`);
+    const expectedFilename = `attachment; filename="pulselayer_${validAccount.slice(0, 8)}.json"`;
+    if (exportRes.status !== 200 || exportRes.headers.get('content-disposition') !== expectedFilename) {
+      throw new Error('Expected /api/export to return the account export with a safe filename.');
+    }
+    console.log('✅ /api/export returns a quoted filename for a valid indexed account.');
+
+    const unknownAccount = Keypair.random().publicKey();
+    const missingExportRes = await fetch(`http://localhost:5001/api/export/${unknownAccount}`);
+    const missingExport = await missingExportRes.json();
+    if (missingExportRes.status !== 404 || missingExport.error !== 'Account not found') {
+      throw new Error('Expected /api/export to return 404 for a valid unindexed account.');
+    }
+    console.log('✅ /api/export returns 404 for a valid unindexed account.');
+
+    const invalidExportRes = await fetch('http://localhost:5001/api/export/not-a-stellar-address');
+    const invalidExport = await invalidExportRes.json();
+    if (invalidExportRes.status !== 400 || invalidExport.error !== 'Invalid Stellar account address') {
+      throw new Error('Expected /api/export to reject an invalid Stellar address with 400.');
+    }
+    console.log('✅ /api/export rejects invalid Stellar addresses with 400.');
+
     console.log('\n🎉 ALL INTEGRATION TESTS PASSED CLEANLY!');
   } catch (err: any) {
     console.error('❌ API Integration Test Failed:', err.message);
+    process.exitCode = 1;
   }
 }
 

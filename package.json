@@ -7,6 +7,7 @@
     "dev:server": "npx tsx server/server.ts",
     "dev:ui": "next dev -p 3000",
     "seed": "npx tsx server/seed.ts",
+    "test:scoring": "tsx --test scripts/scoring.test.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

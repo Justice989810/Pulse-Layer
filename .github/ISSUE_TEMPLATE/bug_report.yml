@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest sequence that reproduces the problem.
+      placeholder: 1. Open ...\n2. Select ...\n3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include browser, operating system, and Node.js version when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Logs or additional context
+      description: Add relevant errors, screenshots, or other details.
+    validations:
+      required: false
