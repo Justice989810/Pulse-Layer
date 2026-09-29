@@ -112,3 +112,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-electric);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
