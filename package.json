@@ -7,7 +7,7 @@
     "dev:server": "npx tsx server/server.ts",
     "dev:ui": "next dev -p 3000",
     "seed": "npx tsx server/seed.ts",
-    "test": "tsx --test scripts/db.test.ts",
+    "test:account-validation": "tsx --test scripts/account-validation.test.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

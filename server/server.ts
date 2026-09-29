@@ -7,6 +7,7 @@ import { db } from './db';
 import { apiCachePolicy } from './cache-policy';
 import { seedAccountsDatabase, startHorizonLiveStream, indexerEvents, DEMO_WELL_KNOWN_ACCOUNTS, getOrFetchStellarAccount } from './indexer';
 import { calculateTrustScore, AccountRawData } from './scoring';
+import { requireValidAccountParam } from './validation';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5001;
@@ -248,7 +249,7 @@ app.get('/api/feed', (req, res) => {
 /**
  * GET /api/export/:account -> Export intelligence JSON
  */
-app.get('/api/export/:account', (req, res) => {
+app.get('/api/export/:account', requireValidAccountParam, (req, res) => {
   try {
     const { account } = req.params;
     if (!StrKey.isValidEd25519PublicKey(account)) {

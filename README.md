@@ -114,9 +114,45 @@ Please read [`SECURITY.md`](SECURITY.md) before reporting a vulnerability. Contr
 
 ## Funding and ecosystem readiness
 
-PulseLayer is designed to be reviewable for public-good and ecosystem funding programs, including Stellar community initiatives and independent grant programs. That means the repository documents a concrete problem, current scope, technical evidence, risks, milestones, and verification criteria. It does not claim automatic eligibility for Stellar Drips Wave 10, Grantfox, or any other program; each program sets its own rules, deadlines, and selection criteria.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/stats` | Global network indexer stats, ledger height, and average trust score |
+| `GET` | `/api/score/:account` | Detailed Pulse Score, factors, and active signals for Stellar address |
+| `GET` | `/api/history/:account` | Historical score snapshot timeline for charts |
+| `GET` | `/api/top` | Paginated directory of indexed Stellar accounts with risk filtering |
+| `GET` | `/api/feed` | Recent indexed Stellar operations feed |
+| `GET` | `/api/export/:account` | Download full structured JSON audit payload; invalid Stellar account IDs return `400` |
 
-Proposed funding would support public deliverables: reproducible datasets and evaluation reports, better ingestion reliability, calibrated scoring, API hardening, documentation, and contributor support. Milestones and acceptance criteria are tracked in [`FUTURE_PLAN.md`](FUTURE_PLAN.md).
+### WebSocket API
+* **Endpoint**: `/ws`
+* **Event Payload**:
+  ```json
+  {
+    "type": "LIVE_TRANSACTION",
+    "data": {
+      "id": "tx_981249",
+      "account_id": "GAK6E46MRRAG72MNDHNE54F2M43MVTK4Z2X7MHBCEEE4ZJ32FGGXX444",
+      "type": "payment",
+      "amount": "250.00",
+      "asset": "XLM",
+      "is_anomaly": false,
+      "created_at": "2026-08-04T19:00:00.000Z"
+    }
+  }
+  ```
+
+---
+
+## Security & Transparency
+
+PulseLayer is designed with non-custodial and read-only operational boundaries:
+* **Zero Private Key Access**: PulseLayer only reads public Stellar ledger data (`G...` public keys).
+* **Input Validation**: Strict address format enforcement and SQL parameterization.
+* **Read-only Horizon Ingestion**: Pure SSE stream consumption with fallback retry mechanisms.
+
+For security policies and vulnerability reporting procedures, see **[SECURITY.md](SECURITY.md)**.
+
+---
 
 ## Contributing and license
 
