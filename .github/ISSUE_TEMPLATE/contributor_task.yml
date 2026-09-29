@@ -1,0 +1,31 @@
+name: Contributor task
+description: Propose a feature, improvement, or documentation task.
+title: "[Task]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or goal
+      description: What user need or project goal does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the change you are proposing.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and constraints
+      description: Note important boundaries, dependencies, or non-goals.
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: How should the completed change be tested or reviewed?
+    validations:
+      required: true

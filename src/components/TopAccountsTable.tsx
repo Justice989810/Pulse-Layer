@@ -10,21 +10,45 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/config';
+import { fetchApiJson, isRecord } from '@/lib/api';
+
+type TopAccountsResponse = {
+  accounts: Record<string, unknown>[];
+  total: number;
+};
+
+const isTopAccountsResponse = (value: unknown): value is TopAccountsResponse =>
+  isRecord(value) &&
+  typeof value.total === 'number' &&
+  Array.isArray(value.accounts) &&
+  value.accounts.every((account) =>
+    isRecord(account) &&
+    typeof account.account === 'string' &&
+    typeof account.score === 'number' &&
+    typeof account.trend === 'string' &&
+    typeof account.tx_count === 'number' &&
+    typeof account.lifespan_days === 'number' &&
+    typeof account.risk_level === 'string' &&
+    typeof account.anomaly_flag === 'boolean',
+  );
 
 interface TopAccountsTableProps {
   onSelectAccount: (account: string) => void;
   searchQuery: string;
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
 export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
   onSelectAccount,
   searchQuery,
+  page,
+  onPageChange,
 }) => {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [riskFilter, setRiskFilter] = useState('ALL');
-  const [sort] = useState('score_desc');
+  const [sort, setSort] = useState('score_desc');
   const [loading, setLoading] = useState(false);
 
   const fetchAccounts = () => {
@@ -37,13 +61,10 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
     });
     if (searchQuery) params.set('search', searchQuery);
 
-    fetch(`${getApiUrl()}/api/top?${params.toString()}`)
-      .then((res) => res.json())
+    fetchApiJson(`${getApiUrl()}/api/top?${params.toString()}`, isTopAccountsResponse)
       .then((data) => {
-        if (data.accounts) {
-          setAccounts(data.accounts);
-          setTotal(data.total);
-        }
+        setAccounts(data.accounts);
+        setTotal(data.total);
         setLoading(false);
       })
       .catch((err) => {
@@ -71,6 +92,20 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
 
         {/* Risk Filter Tabs */}
         <div className="flex items-center gap-1 bg-[var(--bg-secondary)] p-1 rounded-lg border border-[var(--border-subtle)] overflow-x-auto">
+          <label className="sr-only" htmlFor="account-directory-sort">Sort accounts</label>
+          <select
+            id="account-directory-sort"
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value);
+              setPage(1);
+            }}
+            className="px-2 py-1 text-xs rounded bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border-subtle)] cursor-pointer"
+          >
+            <option value="score_desc">Highest score</option>
+            <option value="tx_desc">Most transactions</option>
+            <option value="lifespan_desc">Longest lifespan</option>
+          </select>
           {[
             { id: 'ALL', label: 'All Accounts' },
             { id: 'LOW', label: 'Low Risk (80-100)' },
@@ -82,7 +117,7 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
               key={tab.id}
               onClick={() => {
                 setRiskFilter(tab.id);
-                setPage(1);
+                onPageChange(1);
               }}
               className={`px-3 py-1 text-xs rounded transition-all whitespace-nowrap cursor-pointer ${
                 riskFilter === tab.id
@@ -234,7 +269,7 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
         <div className="flex items-center gap-2">
           <button
             disabled={page === 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => onPageChange(Math.max(1, page - 1))}
             className="p-1.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)] hover:border-[var(--accent-electric)] disabled:opacity-40 disabled:hover:border-[var(--border-subtle)] cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -242,7 +277,7 @@ export const TopAccountsTable: React.FC<TopAccountsTableProps> = ({
           <span>Page {page} of {Math.ceil(total / 10) || 1}</span>
           <button
             disabled={page >= Math.ceil(total / 10)}
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => onPageChange(page + 1)}
             className="p-1.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)] hover:border-[var(--accent-electric)] disabled:opacity-40 disabled:hover:border-[var(--border-subtle)] cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-4 h-4" />
