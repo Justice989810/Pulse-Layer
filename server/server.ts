@@ -12,7 +12,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 
 // Initialize HTTP server & WebSockets
 const server = http.createServer(app);

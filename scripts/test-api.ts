@@ -77,9 +77,20 @@ async function runTests() {
     const historyRes = await fetch(`http://localhost:5001/api/history/${sampleAccount.account_id}`).then((r) => r.json());
     console.log('✅ /api/history:', { snapshotsCount: historyRes.snapshots?.length });
 
+    const oversizedRes = await fetch('http://localhost:5001/api/stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload: 'x'.repeat(1024 * 1024) }),
+    });
+    if (oversizedRes.status !== 413) {
+      throw new Error(`Expected oversized JSON request to return 413, received ${oversizedRes.status}`);
+    }
+    console.log('✅ Oversized JSON request rejected with HTTP 413.');
+
     console.log('\n🎉 ALL INTEGRATION TESTS PASSED CLEANLY!');
   } catch (err: any) {
     console.error('❌ API Integration Test Failed:', err.message);
+    process.exitCode = 1;
   }
 }
 
